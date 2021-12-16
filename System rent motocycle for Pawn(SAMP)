@@ -1,0 +1,78 @@
+Ко всем new:
+new	pickuptook[4], velik[MAX_PLAYERS];
+
+в public OnPlayerPickUpPickup(playerid, pickupid)
+
+else if(pickupid >= pickuptook[0] && pickupid <= pickuptook[3])
+	{
+		if(velik[playerid] > 0)
+		{
+			DestroyVehicleEx(velik[playerid]);
+			velik[playerid] = 0;
+			SendClientMessage(playerid,COLOR_GREY,"Ваш арендованный мопед был удален!");
+		}
+		if(!GetPVarInt(playerid, "check_arenda_moped"))
+		{
+		    ShowPlayerDialog(playerid, 136, DIALOG_STYLE_TABLIST, "{FFFFFF}** {FF9000}Аренда велосипедов/мопедов {FFFFFF}**", "\
+		        {FF9000}1. {FFFFFF}BMX\t{00b831}20.000$\n\
+		        {FF9000}2. {FFFFFF}Горный велосипед\t{00b831}25.500$\n\
+		        {FF9000}3. {FFFFFF}RastaBike\t{00b831}40.000$\n\
+		        {FF9000}4. {FFFFFF}Мопед Faggio\t{00b831}70.000$\n\
+				{FF9000}5. {FFFFFF}Мотоцикл Sanchez\t{00b831}120.000$\n\
+				{FF9000}6. {FFFFFF}Мотоцикл NRG-500\t{00b831}500.000$", "Выбрать", "Выход");
+			return true;
+		}
+	}
+В public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+	
+	case 136:
+		{
+			if(!response) return true;
+			if(velik[playerid] != 0) return SCM(playerid, -1, "• {AC0000}[Ошибка] {ffffff}Вы уже арендовали свой мопед");
+			new CostArend[6][2] =
+			{
+			    {481,20000},
+			    {510,25500},
+			    {509,40000},
+			    {462,70000},
+			    {468,120000},
+			    {522,500000}
+			};
+			if(PlayerInfo[playerid][pCash] < CostArend[listitem][1]) return SCM(playerid, -1, "• {AC0000}[Ошибка] {ffffff}Недостаточно средств на руках.");
+			Hook_GivePlayerMoney(playerid, -CostArend[listitem][1]);
+			new Float:x,Float:y,Float:a,Float:z;
+			GetPlayerPos(playerid,x,y,z);
+			GetPlayerFacingAngle(playerid,a);
+			velik[playerid] = CreateVehicleEx(CostArend[listitem][0], x,y,z, a, 1, 1, 900, 0);
+			SetVehicleParamsEx(velik[playerid],VEHICLE_PARAMS_ON,false,alarm,doorss,bonnet,boot,objective);
+			zavodis[playerid] = 1;
+			Fuell[velik[playerid]] = 100;
+			VEHICLE[velik[playerid]][ vHealth ] = 1000.0;
+			VEHICLE[velik[playerid]][ vLock ] = 0;
+			GetVehicleParamsEx(velik[playerid],engine,light,alarm,doorss,bonnet,boot,objective);
+			PutPlayerInVeh(playerid,velik[playerid],0);
+		//	SetVehicleParamsEx(velik[playerid],0,0,alarm,doors,bonnet,boot,objective);
+			return SendClientMessage(playerid,COLOR_GREY,"Вам был выдан транспорт!");
+		}
+	
+в public OnGameModeInit()
+
+    // Пикапы аренды
+   	pickuptook[0] = CreatePickupAC(19134,23,839.2170,-2097.7031,13.2297);
+	pickuptook[1] = CreatePickupAC(19134,23,1473.1429,-1024.1007,23.8281);
+	pickuptook[2] = CreatePickupAC(19134,23,1213.8303,-1324.6779,13.5671);
+	pickuptook[3] = CreatePickupAC(19134,23,2217.3,-1161.43,25.73);
+	
+в public OnPlayerDisconnect(playerid, reason)
+
+if(velik[playerid] != 0) DestroyVehicleEx(velik[playerid]),velik[playerid] = 0;
+
+в public OnVehicleSpawn(vehicleid)
+
+foreach(Player,i)
+    if(vehicleid == velik[i])
+    {
+        DestroyVehicleEx(velik[i]);
+        velik[i] = 0;
+		SendClientMessage(i,-1,"{FF0000}[!]{FFFFFF} Ваш арендованный транспорт был отогнан");
+    }
